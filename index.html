@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NutriMind AI</title>
+</head>
+<body>
+
+<h2>NutriMind AI 🍽️</h2>
+
+<label>BP:</label>
+<input type="number" id="bp"><br><br>
+
+<label>Sugar:</label>
+<input type="number" id="sugar"><br><br>
+
+<label>Mood:</label>
+<input type="text" id="mood"><br><br>
+
+<label>Groceries:</label>
+<input type="text" id="groceries"><br><br>
+
+<label>Weight (kg):</label>
+<input type="number" id="weight"><br><br>
+
+<label>Activity Level:</label>
+<select id="activity">
+    <option value="low">Low</option>
+    <option value="moderate">Moderate</option>
+    <option value="high">High</option>
+</select><br><br>
+
+<button onclick="getMeal()">Get Meal</button>
+
+<!-- ✅ NEW BUTTON -->
+<button onclick="getHistory()">Show History</button>
+
+<h3>Result:</h3>
+<pre id="result"></pre>  <!-- ✅ changed to pre for formatting -->
+
+<script>
+async function getMeal() {
+    const data = {
+        bp: parseInt(document.getElementById("bp").value),
+        sugar: parseInt(document.getElementById("sugar").value),
+        mood: document.getElementById("mood").value,
+        groceries: document.getElementById("groceries").value,
+        weight: parseInt(document.getElementById("weight").value),
+        activity: document.getElementById("activity").value
+    };
+
+    try {
+        const res = await fetch("http://127.0.0.1:8000/meal", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (result.meal) {
+            document.getElementById("result").innerText =
+                result.meal +
+                "\n\n💧 Water Intake: " +
+                result.water_intake_liters + " liters/day";
+        } else {
+            document.getElementById("result").innerText = result.error;
+        }
+
+    } catch (error) {
+        document.getElementById("result").innerText = "Error connecting to server!";
+    }
+}
+
+// ✅ NEW FUNCTION (HISTORY)
+async function getHistory() {
+    try {
+        const res = await fetch("http://127.0.0.1:8000/history");
+        const data = await res.json();
+
+        let output = "";
+
+        data.forEach(item => {
+            output += `
+-------------------------
+📅 Date: ${item.date}
+🩺 BP: ${item.bp}
+🍬 Sugar: ${item.sugar}
+😊 Mood: ${item.mood}
+🍽️ Meal: ${item.meal}
+💧 Water: ${item.water} L
+-------------------------
+`;
+        });
+
+        document.getElementById("result").innerText = output;
+
+    } catch (error) {
+        document.getElementById("result").innerText = "Error fetching history!";
+    }
+}
+</script>
+
+</body>
+</html>
