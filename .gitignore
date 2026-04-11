@@ -1,3 +1,14 @@
+# Environment variables
+.env
+
+# Python virtual environment
 venv/
 __pycache__/
 *.pyc
+*.pyo
+
+# Database files (if any)
+*.db
+
+# Render & deployment files
+.render
