@@ -6,6 +6,10 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base
 from datetime import datetime
 import os
+import random
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -41,10 +45,72 @@ class User(Base):
     meal = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-# Create tables only if database is connected
 if engine:
     Base.metadata.create_all(bind=engine)
 
+# In-memory OTP storage (for demo)
+otp_store = {}
+
+# ====================== OTP LOGIN MODELS ======================
+class EmailRequest(BaseModel):
+    email: str
+
+class OTPVerify(BaseModel):
+    email: str
+    otp: str
+
+# ====================== OTP ENDPOINTS ======================
+@app.post("/send-otp")
+def send_otp(request: EmailRequest):
+    try:
+        otp = str(random.randint(100000, 999999))
+        otp_store[request.email] = otp
+
+        sender_email = os.getenv("SMTP_EMAIL")
+        sender_password = os.getenv("SMTP_APP_PASSWORD")
+
+        if not sender_email or not sender_password:
+            return {"error": "SMTP settings not configured"}
+
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = request.email
+        msg['Subject'] = "NutriMind AI - Login OTP"
+
+        body = f"""
+        Hello,
+
+        Your One-Time Password (OTP) for NutriMind AI is: {otp}
+
+        This OTP is valid for 10 minutes.
+
+        Thank you!
+        NutriMind AI Team
+        """
+
+        msg.attach(MIMEText(body, 'plain'))
+
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+
+        return {"message": "OTP sent successfully to your email"}
+
+    except Exception as e:
+        return {"error": f"Failed to send OTP: {str(e)}"}
+
+
+@app.post("/verify-otp")
+def verify_otp(request: OTPVerify):
+    stored_otp = otp_store.get(request.email)
+    if stored_otp and stored_otp == request.otp:
+        del otp_store[request.email]   # OTP is single use
+        return {"message": "Login successful", "success": True}
+    else:
+        return {"message": "Invalid or expired OTP", "success": False}
+
+
+# ====================== EXISTING ENDPOINTS ======================
 class UserData(BaseModel):
     bp: int
     sugar: int
@@ -69,7 +135,7 @@ def get_meal(data: UserData):
         """
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.1-flash",   # Stable model
             contents=prompt
         )
 
@@ -82,7 +148,6 @@ def get_meal(data: UserData):
 
         meal_text = response.text if hasattr(response, "text") else str(response)
 
-        # Save to database if connected
         if SessionLocal:
             db = SessionLocal()
             user_data = User(
