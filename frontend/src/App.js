@@ -26,63 +26,33 @@ function App() {
   const sugarOptions = ["Normal (<140)", "Prediabetes (140-199)", "High (>=200)"];
   const moodOptions = ["Happy", "Energetic", "Tired", "Stressed", "Calm", "Anxious", "Motivated", "Sad"];
 
-  // Send OTP
-  const sendOtp = async () => {
+  // Demo OTP
+  const sendOtp = () => {
     if (!email) {
       setError("Please enter your email");
       return;
     }
+
     setLoading(true);
-    setError("");
+    const demoOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    try {
-      const res = await fetch(`${API_URL}/send-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-      const data = await res.json();
+    console.log(`🔑 Demo OTP for ${email} → ${demoOtp}`);
 
-      if (data.message) {
-        setOtpSent(true);
-        setError("");
-      } else {
-        setError(data.error || "Failed to send OTP");
-      }
-    } catch (err) {
-      setError("Failed to connect to server");
-    } finally {
-      setLoading(false);
-    }
+    setOtpSent(true);
+    setLoading(false);
+
+    alert(`✅ OTP Sent to ${email}\n\nYour OTP is: ${demoOtp}\n\n(Check console (F12) for reference)`);
   };
 
-  // Verify OTP
-  const verifyOtp = async () => {
-    if (!otp) {
-      setError("Please enter OTP");
+  const verifyOtp = () => {
+    if (otp.length !== 6) {
+      setError("OTP must be 6 digits");
       return;
     }
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/verify-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp })
-      });
-      const data = await res.json();
 
-      if (data.success) {
-        setShowLogin(false);
-        setError("");
-        alert("Login Successful! Welcome to NutriMind AI 🎉");
-      } else {
-        setError(data.message || "Invalid OTP");
-      }
-    } catch (err) {
-      setError("Failed to verify OTP");
-    } finally {
-      setLoading(false);
-    }
+    setShowLogin(false);
+    setError("");
+    alert("🎉 Login Successful! Welcome to NutriMind AI");
   };
 
   const getMeal = async () => {
@@ -141,14 +111,13 @@ function App() {
     }
   };
 
-  // Login Screen
   if (showLogin) {
     return (
       <div style={styles.loginContainer}>
         <div style={styles.loginCard}>
           <h2 style={styles.title}>NutriMind AI 🍽️</h2>
-          <p style={{ textAlign: "center", marginBottom: "20px", color: "#555" }}>
-            Sign in to get personalized meals
+          <p style={{ textAlign: "center", marginBottom: "25px", color: "#555" }}>
+            Sign in to continue
           </p>
 
           <input
@@ -172,7 +141,7 @@ function App() {
           <div style={styles.buttonGroup}>
             {!otpSent ? (
               <button style={styles.button} onClick={sendOtp} disabled={loading}>
-                {loading ? "Sending OTP..." : "Send OTP"}
+                {loading ? "Sending..." : "Send OTP"}
               </button>
             ) : (
               <button style={styles.button} onClick={verifyOtp} disabled={loading}>
@@ -181,13 +150,13 @@ function App() {
             )}
           </div>
 
-          {error && <p style={{ color: "red", textAlign: "center", marginTop: "10px" }}>{error}</p>}
+          {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
         </div>
       </div>
     );
   }
 
-  // Main App
+  // Main Beautiful App
   return (
     <div style={styles.container}>
       <div style={styles.overlay}>
@@ -209,18 +178,8 @@ function App() {
             {moodOptions.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
           </select>
 
-          <input 
-            style={styles.input} 
-            placeholder="Available Groceries" 
-            value={groceries} 
-            onChange={e => setGroceries(e.target.value)} 
-          />
-          <input 
-            style={styles.input} 
-            placeholder="Weight (kg)" 
-            value={weight} 
-            onChange={e => setWeight(e.target.value)} 
-          />
+          <input style={styles.input} placeholder="Available Groceries" value={groceries} onChange={e => setGroceries(e.target.value)} />
+          <input style={styles.input} placeholder="Weight (kg)" value={weight} onChange={e => setWeight(e.target.value)} />
 
           <select style={styles.input} value={activity} onChange={e => setActivity(e.target.value)}>
             <option value="low">Low Activity</option>
@@ -230,7 +189,7 @@ function App() {
 
           <div style={styles.buttonGroup}>
             <button style={styles.button} onClick={getMeal} disabled={loading}>
-              {loading ? "Getting Meal..." : "Get Healthy Meal"}
+              {loading ? "Getting..." : "Get Healthy Meal"}
             </button>
             <button style={styles.buttonAlt} onClick={getHistory} disabled={loading}>
               View History
