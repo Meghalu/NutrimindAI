@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
-
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -74,9 +72,9 @@ function App() {
       const data = await res.json();
 
       if (data.success) {
-        setIsLoggedIn(true);
         setShowLogin(false);
         setError("");
+        alert("Login Successful! Welcome to NutriMind AI 🎉");
       } else {
         setError(data.message || "Invalid OTP");
       }
@@ -150,7 +148,7 @@ function App() {
         <div style={styles.loginCard}>
           <h2 style={styles.title}>NutriMind AI 🍽️</h2>
           <p style={{ textAlign: "center", marginBottom: "20px", color: "#555" }}>
-            Sign in to get personalized meal suggestions
+            Sign in to get personalized meals
           </p>
 
           <input
@@ -211,8 +209,18 @@ function App() {
             {moodOptions.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
           </select>
 
-          <input style={styles.input} placeholder="Available Groceries" value={groceries} onChange={e => setGroceries(e.target.value)} />
-          <input style={styles.input} placeholder="Weight (kg)" value={weight} onChange={e => setWeight(e.target.value)} />
+          <input 
+            style={styles.input} 
+            placeholder="Available Groceries" 
+            value={groceries} 
+            onChange={e => setGroceries(e.target.value)} 
+          />
+          <input 
+            style={styles.input} 
+            placeholder="Weight (kg)" 
+            value={weight} 
+            onChange={e => setWeight(e.target.value)} 
+          />
 
           <select style={styles.input} value={activity} onChange={e => setActivity(e.target.value)}>
             <option value="low">Low Activity</option>
