@@ -135,7 +135,7 @@ def get_meal(data: UserData):
         """
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash",   # Stable model
+            model="gemini-2.5-flash-lite",   # Stable model
             contents=prompt
         )
 
